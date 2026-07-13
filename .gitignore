@@ -1,0 +1,26 @@
+.DS_Store
+*.swp
+*~
+
+# Secrets
+**/.env
+**/.*.env
+**/.unifi.local.env
+**/.pios_wifi.env
+**/credentials*
+**/secrets*
+
+# Runtime / ephemeral
+**/pios_awake.pid
+**/reports/*.txt
+**/reports/*.log
+**/reports/wan_watch.pid
+**/reports/wan_watch_stdout.log
+!**/reports/executive_report_*.md
+
+# Playwright / debug output (screenshots)
+output/
+
+# Build artifacts
+*.app/
+**/DerivedData/
