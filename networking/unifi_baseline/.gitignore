@@ -1,7 +1,0 @@
-.unifi.local.env
-.pios_wifi.env
-reports/*.txt
-reports/*.log
-reports/wan_watch.pid
-reports/wan_watch_stdout.log
-!reports/executive_report_*.md

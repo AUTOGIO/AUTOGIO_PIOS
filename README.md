@@ -1,25 +1,28 @@
 # AUTOGIO_PIOS
 
-Local-first personal infrastructure for home networking and Mac tooling (UniFi baseline + helpers).
+Local-first Mac tooling for home UniFi / Starlink networking, plus a menu-bar awake toggle.
 
-## Layout
+## Run
+
+```bash
+# Daily network health
+~/Documents/GitHub/AUTOGIO_PIOS/scripts/unifi_daily_health.zsh
+
+# Menu bar awake app
+~/Documents/GitHub/AUTOGIO_PIOS/src/pios_awake/build.zsh
+```
+
+Secrets: copy `config/.unifi.local.env.example` → `config/.unifi.local.env` (gitignored).
+
+## Where things live
 
 | Path | Purpose |
 |------|---------|
-| [`networking/unifi_baseline/`](networking/unifi_baseline/) | UniFi / Starlink home baseline (PIOS-HOME-01) |
-| [`tools/pios_awake/`](tools/pios_awake/) | Menu bar awake toggle (`caffeinate`) |
+| `scripts/` | UniFi health, WAN watch, intel collect |
+| `src/pios_awake/` | PIOS Awake (Swift) |
+| `config/` | Env examples, schema, LaunchAgent samples |
+| `data/` | Reports + SQLite intel DB |
+| `docs/` | Guides and checklists |
+| `archive/` | Old debug output |
 
-## Secrets
-
-Do not commit credentials. Copy:
-
-```bash
-cp networking/unifi_baseline/.unifi.local.env.example \
-   networking/unifi_baseline/.unifi.local.env
-```
-
-Wi-Fi password lives in `.pios_wifi.env` (gitignored).
-
-## Latest status
-
-See [`networking/unifi_baseline/reports/executive_report_20260713.md`](networking/unifi_baseline/reports/executive_report_20260713.md).
+Full UniFi guide: [`docs/unifi-baseline.md`](docs/unifi-baseline.md). Layout rules: [`AGENTS.md`](AGENTS.md).

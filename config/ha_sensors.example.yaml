@@ -1,0 +1,48 @@
+# Home Assistant — example sensors for PIOS Network Intelligence
+#
+# Option A (simplest): command-line / file sensors reading ha_state.json
+# written by scripts/collect.zsh every 5 minutes.
+#
+# Path on HA host (adjust if HA runs elsewhere — copy/sync the JSON):
+#   /config/pios/unifi_ha_state.json
+#
+# Or mount/sync from Mac:
+#   ~/Documents/GitHub/AUTOGIO_PIOS/data/intelligence/ha_state.json
+
+# configuration.yaml fragment (example — do not enable until Phase 3)
+
+sensor:
+  - platform: file
+    name: PIOS UniFi WAN Uptime
+    file_path: /config/pios/unifi_ha_state.json
+    value_template: "{{ value_json.wan_uptime_pct }}"
+    unit_of_measurement: "%"
+
+  - platform: file
+    name: PIOS UniFi Client Count
+    file_path: /config/pios/unifi_ha_state.json
+    value_template: "{{ value_json.client_count }}"
+
+  - platform: file
+    name: PIOS UniFi Weak WiFi Count
+    file_path: /config/pios/unifi_ha_state.json
+    value_template: "{{ value_json.weak_wifi_count }}"
+
+  - platform: file
+    name: PIOS UniFi Gateway CPU
+    file_path: /config/pios/unifi_ha_state.json
+    value_template: "{{ value_json.gateway_cpu_pct }}"
+    unit_of_measurement: "%"
+
+# Option B: MQTT — publish from a small wrapper later, e.g.
+#   mosquitto_pub -t pios/unifi/state -f data/intelligence/ha_state.json
+#
+# mqtt:
+#   sensor:
+#     - name: "PIOS UniFi Client Count"
+#       state_topic: "pios/unifi/state"
+#       value_template: "{{ value_json.client_count }}"
+
+# Presence (prefer official UniFi Network integration with fixed IPs):
+# device_tracker entities for iPhone / MacBook → automations in
+# docs/checklists/activity_correlation.md

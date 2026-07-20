@@ -2,25 +2,45 @@
 *.swp
 *~
 
+# Logs / temp
+logs/
+tmp/
+*.log
+
+# Node / Python (if added later)
+node_modules/
+__pycache__/
+.venv/
+venv/
+
 # Secrets
+.env
 **/.env
 **/.*.env
-**/.unifi.local.env
-**/.pios_wifi.env
 **/credentials*
 **/secrets*
+config/.unifi.local.env
+config/.pios_wifi.env
+config/.cache/
 
-# Runtime / ephemeral
+# Runtime / local data
 **/pios_awake.pid
-**/reports/*.txt
-**/reports/*.log
-**/reports/wan_watch.pid
-**/reports/wan_watch_stdout.log
-!**/reports/executive_report_*.md
+data/intelligence/*.sqlite
+data/intelligence/*.sqlite-*
+data/intelligence/ha_state.json
+data/inventory/dhcp_reservations.md
+data/reports/*.txt
+data/reports/*.log
+data/reports/*.score.json
+data/reports/intel_morning_*.md
+data/reports/wan_watch.pid
+data/reports/wan_watch_stdout.log
+!data/reports/executive_report_*.md
 
-# Playwright / debug output (screenshots)
-output/
+# Archive / debug dumps
+archive/
 
 # Build artifacts
 *.app/
 **/DerivedData/
+**/*.signed.shortcut
