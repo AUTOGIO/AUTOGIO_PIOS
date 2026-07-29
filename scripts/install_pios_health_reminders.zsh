@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Install PIOS UniFi Daily Health: sign Shortcut + create 10am/10pm Reminders.
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SETUP_DIR="${BASE_DIR}/scripts"
 UNSIGNED="${SETUP_DIR}/PIOS UniFi Daily Health.shortcut"
 SIGNED="${SETUP_DIR}/PIOS UniFi Daily Health.signed.shortcut"

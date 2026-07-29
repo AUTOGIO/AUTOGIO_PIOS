@@ -2,9 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   Copy to ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist after Phase 0.
-  Do NOT load during the 48h WAN gate unless you accept extra API traffic.
+  Do NOT load during an active 48h WAN gate unless you accept extra API traffic.
 
-  launchctl load ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
+  Replace __REPO_ROOT__ with the absolute path to this clone, e.g.:
+    sed "s|__REPO_ROOT__|$HOME/Documents/GitHub/AUTOGIO_PIOS|g" \
+      config/com.pios.unifi-intel-collect.plist.example \
+      > ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
+
+  launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
 -->
 <plist version="1.0">
 <dict>
@@ -13,16 +18,16 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/zsh</string>
-    <string>/Users/eduardofgiovannini/Documents/GitHub/AUTOGIO_PIOS/scripts/collect.zsh</string>
+    <string>__REPO_ROOT__/scripts/collect.zsh</string>
   </array>
   <key>StartInterval</key>
   <integer>300</integer>
   <key>RunAtLoad</key>
   <false/>
   <key>StandardOutPath</key>
-  <string>/Users/eduardofgiovannini/Documents/GitHub/AUTOGIO_PIOS/data/reports/intel_collect_stdout.log</string>
+  <string>__REPO_ROOT__/data/reports/intel_collect_stdout.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/eduardofgiovannini/Documents/GitHub/AUTOGIO_PIOS/data/reports/intel_collect_stderr.log</string>
+  <string>__REPO_ROOT__/data/reports/intel_collect_stderr.log</string>
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>

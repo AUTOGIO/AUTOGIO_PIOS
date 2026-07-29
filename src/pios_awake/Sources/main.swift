@@ -6,8 +6,9 @@ final class AwakeController: NSObject, NSApplicationDelegate {
     private var toggleItem: NSMenuItem!
     private var caffeinateProcess: Process?
     private let pidFileURL: URL = {
-        let dir = URL(fileURLWithPath: NSHomeDirectory())
-            .appendingPathComponent("Documents/GitHub/AUTOGIO_PIOS/src/pios_awake", isDirectory: true)
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support")
+        let dir = base.appendingPathComponent("com.pios.awake", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("pios_awake.pid")
     }()
@@ -38,8 +39,8 @@ final class AwakeController: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        // Leave caffeinate running if user only quit the UI after enabling awake.
-        // Explicit Off kills the process; Quit keeps it if still On.
+        // Quit menu stops caffeinate via quitApp. Unexpected termination leaves
+        // caffeinate running if Awake was On (PID file remains for adopt-on-relaunch).
     }
 
     @objc private func toggleAwake() {

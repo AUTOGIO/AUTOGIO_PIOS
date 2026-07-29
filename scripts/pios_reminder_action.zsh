@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Run daily health check, open the newest report, schedule post-health follow-up reminder.
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT="${BASE_DIR}/scripts/unifi_daily_health.zsh"
 REPORT_DIR="${BASE_DIR}/data/reports"
 FOLLOWUP_SWIFT="${BASE_DIR}/scripts/create_pios_followup_reminder.swift"

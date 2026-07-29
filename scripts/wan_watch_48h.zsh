@@ -3,8 +3,9 @@ set -u
 
 # Hourly Mac-path connectivity watch for the 48h WAN stability gate.
 # Env: INTERVAL_SECONDS (default 3600), ITERATIONS (default 48)
+# PID ownership: wan_watch_start.zsh writes the caffeinate PID; do not overwrite it here.
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT_DIR="${BASE_DIR}/data/reports"
 SCRIPT_DIR="${BASE_DIR}/scripts"
 PID_FILE="${REPORT_DIR}/wan_watch.pid"
@@ -14,8 +15,6 @@ INTERVAL_SECONDS="${INTERVAL_SECONDS:-3600}"
 ITERATIONS="${ITERATIONS:-48}"
 timestamp="$(date +%Y%m%d-%H%M%S)"
 log_path="${REPORT_DIR}/wan_watch_${timestamp}.log"
-
-print -r -- "$$" > "${PID_FILE}"
 
 section() {
   print -r -- ""
@@ -72,9 +71,12 @@ for i in $(seq 1 "${ITERATIONS}"); do
     section "Sample ${i}/${ITERATIONS}"
     date
     route -n get default || true
-    print -r -- "--- IPv4 on en5 ---"
-    ipconfig getifaddr en5 || true
-    print -r -- "--- IPv4 on en0 ---"
+    primary_dev="$(route -n get default 2>/dev/null | awk '/interface:/{print $2; exit}')"
+    print -r -- "--- IPv4 on primary (${primary_dev:-unknown}) ---"
+    if [[ -n "${primary_dev}" ]]; then
+      ipconfig getifaddr "${primary_dev}" || true
+    fi
+    print -r -- "--- IPv4 on en0 (Wi-Fi, if present) ---"
     ipconfig getifaddr en0 || true
     print -r -- "--- Ping 1.1.1.1 ---"
     ping -c 1 -W 2000 1.1.1.1 || true
@@ -114,4 +116,11 @@ else
   append "FINAL_VERDICT: FAIL_WAN_WATCH"
 fi
 
-rm -f "${PID_FILE}"
+# Only clear PID if we were started without wan_watch_start (foreground / smoke).
+# When launched under caffeinate, the start script owns the PID file.
+if [[ -f "${PID_FILE}" ]]; then
+  owner_pid="$(tr -d '[:space:]' <"${PID_FILE}" 2>/dev/null || true)"
+  if [[ "${owner_pid}" == "$$" ]]; then
+    rm -f "${PID_FILE}"
+  fi
+fi

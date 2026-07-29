@@ -7,7 +7,8 @@
 #   /config/pios/unifi_ha_state.json
 #
 # Or mount/sync from Mac:
-#   ~/Documents/GitHub/AUTOGIO_PIOS/data/intelligence/ha_state.json
+#   $REPO/data/intelligence/ha_state.json
+# (collector writes this path; REPO is wherever this clone lives)
 
 # configuration.yaml fragment (example — do not enable until Phase 3)
 

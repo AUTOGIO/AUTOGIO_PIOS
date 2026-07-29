@@ -1,6 +1,8 @@
 # UniFi Baseline — PIOS-HOME-01
 
-## Current Observed State (Jul 13, 2026)
+**Last verified (docs refresh):** 2026-07-29 (audit remediation — gate RESET; Awake canonical path restored via `build.zsh`)
+
+## Current Observed State (Jul 13, 2026; status notes updated Jul 29)
 
 | Item | Value |
 |------|-------|
@@ -21,9 +23,9 @@
 
 ## WAN Stability Gate
 
-- **Hourly watch started:** Jul 12, 2026 20:00 (PID in `data/reports/wan_watch.pid`)
-- **Due:** ~Jul 14, 2026 20:00
-- **Confirmed stable 48h:** _pending_
+- **Status (2026-07-29):** **RESET / reopen required** (see [wan_stability_gate.md](checklists/wan_stability_gate.md))
+- **Last full watch start:** Jul 12, 2026 20:00 (PID later went stale; cleared in remediation)
+- **Confirmed stable 48h:** _not confirmed — RESET on Jul 20 and Jul 28 daily health_
 - **Checklist:** [wan_stability_gate.md](checklists/wan_stability_gate.md)
 
 Keep Mac on **power + Ethernet**. Use watch `caffeinate` and/or **PIOS Awake** (menu bar cup = On). Run health **2×/day** (10:00 / 22:00).
@@ -64,7 +66,7 @@ Keep Mac on **power + Ethernet**. Use watch `caffeinate` and/or **PIOS Awake** (
 | [PIOS Awake](pios-awake.md) | Menu bar awake toggle (`caffeinate -dims`) |
 | [install_pios_health_reminders.zsh](../scripts/install_pios_health_reminders.zsh) | 10am/10pm Reminders |
 
-Credentials: [`config/.unifi.local.env`](../config/.unifi.local.env) (gitignored). Wi-Fi password: [`config/.pios_wifi.env`](../config/.pios_wifi.env) (gitignored).
+Credentials: [`config/.unifi.local.env`](../config/.unifi.local.env) (gitignored; copy from `.unifi.local.env.example`). Wi-Fi password: [`config/.pios_wifi.env`](../config/.pios_wifi.env) (gitignored; copy from `.pios_wifi.env.example`).
 
 ## Decisions
 

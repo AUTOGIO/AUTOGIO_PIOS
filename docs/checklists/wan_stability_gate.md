@@ -1,6 +1,12 @@
 # WAN Stability Gate (48 Hours)
 
-Start clock: **Jul 12, 2026** (48h gate restarted — prior Jul 5 watch stopped after 1/48 samples)
+**Phase 0 status (2026-07-29): `RESET` — reopen required**
+
+Evidence: interactive `unifi_daily_health` runs recorded `WAN_STABILITY_GATE_RESET` on 2026-07-20 and 2026-07-28. The background watch PID from Jul 12 was stale (process not running) and was cleared during remediation. Do **not** start Phase 1+ fabric changes until this gate is explicitly **PASS**.
+
+To reopen: smoke-test → `wan_watch_start.zsh` → 48h + Topology review → record PASS below.
+
+Start clock (last full attempt): **Jul 12, 2026** (48h gate restarted — prior Jul 5 watch stopped after 1/48 samples)
 
 ## Rules During Gate
 
@@ -129,3 +135,6 @@ shortcuts run "PIOS UniFi Daily Health.signed"
 | 2026-07-13 01:22 | daily_health-style CONTINUE review | Mac path PASS; API `PASS_WAN_STATUS_READ`; watch 6/48 PASS_SAMPLE | **CONTINUE** — UniFi Topology → Starlink still **manual** |
 | 2026-07-13 01:26 | daily_health + API health + shortcut/reminders fix | `PASS_UNIFI_BASELINE_READY` + `PASS_WAN_STATUS_READ`; WAN 24h availability **99.51%** (monitors 100%); Topology opened in Atlas | **CONTINUE** — eyeball Starlink events in UI (availability below 99.9% checklist target) |
 | ~2026-07-14 20:00 | 48h gate complete | confirm Topology zero disconnects | **SCHEDULED** |
+| 2026-07-20 17:26 | daily_health (interactive) | operator answered disconnects=yes | **RESET** — `WAN_STABILITY_GATE_RESET` |
+| 2026-07-28 01:55 | daily_health (interactive) | operator answered disconnects=yes | **RESET** — `WAN_STABILITY_GATE_RESET` |
+| 2026-07-29 | audit remediation | stale `wan_watch.pid` cleared; Awake path/PID hardened | **RESET / reopen required** |

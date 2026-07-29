@@ -25,6 +25,7 @@ config/.cache/
 
 # Runtime / local data
 **/pios_awake.pid
+src/pios_awake/*.pid
 data/intelligence/*.sqlite
 data/intelligence/*.sqlite-*
 data/intelligence/ha_state.json
@@ -36,6 +37,10 @@ data/reports/intel_morning_*.md
 data/reports/wan_watch.pid
 data/reports/wan_watch_stdout.log
 !data/reports/executive_report_*.md
+
+# Python
+scripts/lib/__pycache__/
+tests/__pycache__/
 
 # Archive / debug dumps
 archive/

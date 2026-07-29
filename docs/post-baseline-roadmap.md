@@ -1,6 +1,11 @@
 # Post-Baseline UniFi Roadmap — PIOS-HOME-01
 
 Phased hardening and Network Intelligence plan derived from the UniFi suggestions analysis.
+
+> **Freeze (2026-07-29):** Phase **0 is RESET** (see [wan_stability_gate.md](checklists/wan_stability_gate.md)).  
+> Do **not** start Phases **1–4** fabric/security/VLAN work until Phase 0 is explicitly **PASS**.  
+> Phases **≥2** stay frozen even longer — finish Phase 0 truthfulness + DHCP/WPA3 (Phase 1) before Guest/IoT/IDS.
+
 **Do not start Phases 1–4 until Phase 0 is green.**
 
 | Phase | Name | Gate |

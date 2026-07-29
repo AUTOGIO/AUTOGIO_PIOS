@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Read-only WAN status via local UniFi API (requires local admin in .unifi.local.env).
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT_DIR="${BASE_DIR}/data/reports"
 SCRIPT_DIR="${BASE_DIR}/scripts"
 mkdir -p "${REPORT_DIR}"

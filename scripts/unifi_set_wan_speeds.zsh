@@ -9,7 +9,7 @@ set -euo pipefail
 # Credentials: .unifi.local.env (local admin) or UNIFI_USERNAME/UNIFI_PASSWORD env vars.
 # Defaults: 260 Mbps down / 74 Mbps up (~80% of 330/92 speed test)
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT_DIR="${BASE_DIR}/data/reports"
 SCRIPT_DIR="${BASE_DIR}/scripts"
 mkdir -p "${REPORT_DIR}"
@@ -95,7 +95,7 @@ PY
 )"
 
 update_response="$(
-  curl -sk \
+  unifi_curl \
     -b "${cookie_jar}" \
     -H 'Content-Type: application/json' \
     -X PUT "https://${UNIFI_HOST}/proxy/network/v2/api/site/${UNIFI_SITE}/networks/wan/${WAN_ID}" \

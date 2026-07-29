@@ -1,13 +1,39 @@
 #!/bin/zsh
 # Shared helpers for UniFi baseline scripts. Source, do not execute.
 
-REPO_ROOT="${REPO_ROOT:-${HOME}/Documents/GitHub/AUTOGIO_PIOS}"
+# Resolve repo root from this file's location unless REPO_ROOT is already set.
+_unifi_common_src="${(%):-%x}"
+_unifi_scripts_dir="$(cd "$(dirname "${_unifi_common_src}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "${_unifi_scripts_dir}/.." && pwd)}"
 UNIFI_CONFIG_DIR="${UNIFI_CONFIG_DIR:-${REPO_ROOT}/config}"
 UNIFI_ENV_FILE="${UNIFI_ENV_FILE:-${UNIFI_CONFIG_DIR}/.unifi.local.env}"
 UNIFI_CACHE_DIR="${UNIFI_CACHE_DIR:-${UNIFI_CONFIG_DIR}/.cache}"
 UNIFI_COOKIE_JAR="${UNIFI_COOKIE_JAR:-${UNIFI_CACHE_DIR}/unifi_cookies.txt}"
 # Reuse cookies this many seconds before forcing a re-login (default 25m).
 UNIFI_SESSION_MAX_AGE_SEC="${UNIFI_SESSION_MAX_AGE_SEC:-1500}"
+
+# Local UniFi OS presents a self-signed cert. Prefer UNIFI_CA_CERT (PEM) when available.
+# Without a CA file, curl uses -k (MITM risk on an untrusted LAN — documented tradeoff).
+unifi_curl() {
+  local -a tls_args
+  if [[ -n "${UNIFI_CA_CERT:-}" && -f "${UNIFI_CA_CERT}" ]]; then
+    tls_args=(--cacert "${UNIFI_CA_CERT}")
+  else
+    tls_args=(-k)
+  fi
+  command curl -s "${tls_args[@]}" "$@"
+}
+
+unifi_secure_cookie_paths() {
+  local cookie_jar="$1"
+  local cache_dir
+  cache_dir="$(dirname "${cookie_jar}")"
+  mkdir -p "${cache_dir}"
+  chmod 700 "${cache_dir}" 2>/dev/null || true
+  if [[ -f "${cookie_jar}" ]]; then
+    chmod 600 "${cookie_jar}" 2>/dev/null || true
+  fi
+}
 
 unifi_load_env() {
   if [[ -f "${UNIFI_ENV_FILE}" ]]; then
@@ -37,11 +63,12 @@ unifi_require_credentials() {
 unifi_login() {
   local cookie_jar="$1"
   local login_response
+  local login_code=""
 
-  mkdir -p "$(dirname "${cookie_jar}")"
+  unifi_secure_cookie_paths "${cookie_jar}"
 
   login_response="$(
-    command curl -sk \
+    unifi_curl \
       -c "${cookie_jar}" \
       -H 'Content-Type: application/json' \
       -X POST "https://${UNIFI_HOST}/api/auth/login" \
@@ -55,27 +82,43 @@ print(json.dumps({
 PY
 )"
   )"
+  unifi_secure_cookie_paths "${cookie_jar}"
 
   if ! UNIFI_LOGIN_RESPONSE="${login_response}" python3 -c "
 import json, os, sys
-d = json.loads(os.environ['UNIFI_LOGIN_RESPONSE'])
+raw = os.environ.get('UNIFI_LOGIN_RESPONSE', '')
+try:
+    d = json.loads(raw)
+except Exception:
+    sys.exit(1)
 if d.get('code') in ('MFA_AUTH_REQUIRED', 'AUTHENTICATION_FAILED', 'AUTHENTICATION_FAILED_ACCOUNT_LOCKED'):
     sys.exit(1)
 sys.exit(0 if d.get('unique_id') or d.get('authenticated') else 1)
 " 2>/dev/null; then
-    print -r -- "Login failed (use local admin, not SSO — MFA blocks API):"
-    print -r -- "${login_response}"
+    login_code="$(
+      print -r -- "${login_response}" | python3 -c "
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    print(d.get('code') or d.get('message') or 'unknown')
+except Exception:
+    print('unparseable')
+" 2>/dev/null || print -r -- "unparseable"
+    )"
+    print -r -- "Login failed (use local admin, not SSO — MFA blocks API)."
+    print -r -- "API code: ${login_code}"
     return 1
   fi
   # Touch mtime for session age tracking
   command touch "${cookie_jar}" 2>/dev/null || true
+  unifi_secure_cookie_paths "${cookie_jar}"
   return 0
 }
 
 unifi_api_get() {
   local cookie_jar="$1"
   local api_path="$2"
-  /usr/bin/curl -sk -b "${cookie_jar}" "https://${UNIFI_HOST}${api_path}"
+  unifi_curl -b "${cookie_jar}" "https://${UNIFI_HOST}${api_path}"
 }
 
 # Returns 0 if cookie jar can read a lightweight authenticated endpoint.
@@ -107,11 +150,12 @@ unifi_ensure_session() {
   local max_age="${UNIFI_SESSION_MAX_AGE_SEC}"
   local age=999999
 
-  mkdir -p "$(dirname "${cookie_jar}")"
+  unifi_secure_cookie_paths "${cookie_jar}"
   unifi_require_credentials || return 1
 
   if [[ -f "${cookie_jar}" ]]; then
-    age="$(( $(date +%s) - $(stat -f %m "${cookie_jar}" 2>/dev/null || echo 0) ))"
+    # Prefer BSD /usr/bin/stat — Homebrew gnubin `stat` breaks -f %m and trips set -u.
+    age="$(( $(date +%s) - $(/usr/bin/stat -f %m "${cookie_jar}" 2>/dev/null || echo 0) ))"
   fi
 
   if (( age < max_age )) && unifi_session_ok "${cookie_jar}"; then

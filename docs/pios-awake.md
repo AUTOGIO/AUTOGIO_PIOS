@@ -2,18 +2,18 @@
 
 Menu bar toggle that keeps your Mac awake using `/usr/bin/caffeinate -dims`.
 
-**Status (Jul 13, 2026):** Installed at `~/Applications/PIOS Awake.app` — verified On/Off toggles `caffeinate -dims`.
+**Status (2026-07-29):** Canonical install path is `~/Applications/PIOS Awake.app` (rebuild with `build.zsh`). PID file lives in `~/Library/Application Support/com.pios.awake/pios_awake.pid`.
 
 ## Install / rebuild
 
 ```bash
-~/Documents/GitHub/AUTOGIO_PIOS/src/pios_awake/build.zsh
+./src/pios_awake/build.zsh
 ```
 
 Start at login:
 
 ```bash
-~/Documents/GitHub/AUTOGIO_PIOS/src/pios_awake/install_login_item.zsh
+./src/pios_awake/install_login_item.zsh
 ```
 
 ## Use
@@ -26,9 +26,9 @@ Start at login:
 - **Cup** icon = awake On  
 - **Moon** icon = awake Off  
 
-PID file: `~/Documents/GitHub/AUTOGIO_PIOS/src/pios_awake/pios_awake.pid`
+PID file: `~/Library/Application Support/com.pios.awake/pios_awake.pid`
 
-Independent of the UniFi WAN watch (`wan_watch_start.zsh` has its own `caffeinate`). During the 48h gate, leave **Awake: On**.
+Independent of the UniFi WAN watch (`wan_watch_start.zsh` has its own `caffeinate`). During a 48h gate, leave **Awake: On**.
 
 ## Uninstall login item
 

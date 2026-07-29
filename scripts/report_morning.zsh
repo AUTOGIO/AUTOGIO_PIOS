@@ -4,7 +4,7 @@ set -euo pipefail
 # Morning Network Intelligence digest from SQLite.
 # Usage: report_morning.zsh [--stdout-only]
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="${BASE_DIR}/data/intelligence"
 DB_PATH="${DATA_DIR}/unifi_intel.sqlite"
 REPORT_DIR="${BASE_DIR}/data/reports"
@@ -25,16 +25,17 @@ day="$(date +%Y-%m-%d)"
 report_path="${REPORT_DIR}/intel_morning_${timestamp}.md"
 
 export DB_PATH day report_path
+export PYTHONPATH="${BASE_DIR}/scripts${PYTHONPATH:+:$PYTHONPATH}"
 
 python3 - <<'PY'
 import json, os, sqlite3, time
-from datetime import datetime, timezone
+from datetime import datetime
+from lib.network_score import score_from_intel
 
 db = sqlite3.connect(os.environ["DB_PATH"])
 db.row_factory = sqlite3.Row
 now = int(time.time())
 day_ago = now - 86400
-week_ago = now - 7 * 86400
 
 latest = db.execute("SELECT * FROM samples ORDER BY ts DESC LIMIT 1").fetchone()
 day_rows = db.execute("SELECT * FROM samples WHERE ts >= ? ORDER BY ts", (day_ago,)).fetchall()
@@ -61,19 +62,10 @@ clients_avg = avg("client_count")
 cpu_avg = avg("gateway_cpu_pct")
 
 # Advisory score from latest uptime + weak clients
-score = 100
-notes = []
-if latest and latest["wan_uptime_pct"] is not None:
-    u = float(latest["wan_uptime_pct"])
-    if u < 99.9:
-        pen = min(25, int((99.9 - u) * 10))
-        score -= pen
-        notes.append(f"uptime {u}% → -{pen}")
-if weak:
-    pen = min(15, len(weak) * 2)
-    score -= pen
-    notes.append(f"{len(weak)} weak clients → -{pen}")
-score = max(0, min(100, score))
+uptime_val = float(latest["wan_uptime_pct"]) if latest and latest["wan_uptime_pct"] is not None else None
+scored = score_from_intel(uptime_val, len(weak))
+score = scored["network_score"]
+notes = scored["notes"]
 
 lines = []
 lines.append(f"# PIOS Network Intelligence — Morning Report")

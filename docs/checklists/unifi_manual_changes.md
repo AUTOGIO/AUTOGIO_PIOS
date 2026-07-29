@@ -61,12 +61,20 @@ Based on speed test **330 Mbps down / 92 Mbps up** (Jul 5, 2026), set ~80%:
 
 ### Script path
 
+Prefer the local-admin API path:
+
 ```bash
-UNIFI_USERNAME='automacao.giovannini@gmail.com' \
-  ~/Documents/GitHub/AUTOGIO_PIOS/scripts/unifi_set_wan_speeds_ui.zsh 260 74
+./scripts/unifi_set_wan_speeds.zsh 260 74
 ```
 
-Sign in + approve MFA in the Playwright window when prompted.
+UI escape hatch (requires Playwright CLI + `UNIFI_USERNAME`):
+
+```bash
+UNIFI_USERNAME='pios-local-admin' \
+  ./scripts/unifi_set_wan_speeds_ui.zsh 260 74
+```
+
+Sign in + approve MFA in the Playwright window when prompted (if using SSO for UI only).
 
 ### Status (Jul 5, 2026)
 
@@ -79,7 +87,7 @@ Sign in + approve MFA in the Playwright window when prompted.
 
 ## I. Local Admin (Phase 2 — API automation)
 
-SSO account `automacao.giovannini@gmail.com` requires MFA — API scripts need a **local** admin.
+SSO / Ubiquiti cloud accounts require MFA — API scripts need a **local** admin (not SSO email).
 
 1. **Local gateway Network Admins:** `https://192.168.0.1/network/default/admins` → **+ Create New**
 2. Prefer **Local Site** account (not Fabric/SSO invite); fill username `pios-local-admin`

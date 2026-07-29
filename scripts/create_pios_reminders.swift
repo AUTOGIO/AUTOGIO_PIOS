@@ -4,7 +4,8 @@ import Foundation
 let listName = "PIOS Network"
 // Prefer exact name; fall back to ".signed" import name if that is what Shortcuts library has.
 let shortcutURL = "shortcuts://run-shortcut?name=PIOS%20UniFi%20Daily%20Health.signed"
-let actionScript = "\(NSHomeDirectory())/Documents/GitHub/AUTOGIO_PIOS/scripts/pios_reminder_action.zsh"
+let repoRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().path
+let actionScript = "\(repoRoot)/scripts/pios_reminder_action.zsh"
 let body = """
 Tap the link below to run the health check and open today's log.
 

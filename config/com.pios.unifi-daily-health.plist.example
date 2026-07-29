@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Twice-daily UniFi health via Reminders action script.
+
+  Install:
+    sed "s|__REPO_ROOT__|$HOME/Documents/GitHub/AUTOGIO_PIOS|g" \
+      config/com.pios.unifi-daily-health.plist.example \
+      > ~/Library/LaunchAgents/com.pios.unifi-daily-health.plist
+    launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.pios.unifi-daily-health.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.pios.unifi-daily-health</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>__REPO_ROOT__/scripts/pios_reminder_action.zsh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict>
+      <key>Hour</key>
+      <integer>10</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
+      <integer>22</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+  </array>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>__REPO_ROOT__/data/reports/launchagent_health_stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>__REPO_ROOT__/data/reports/launchagent_health_stderr.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict>
+</plist>

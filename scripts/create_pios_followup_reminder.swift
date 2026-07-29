@@ -4,7 +4,8 @@ import Foundation
 let listName = "PIOS Network"
 let titlePrefix = "PIOS Post-Health Follow-up"
 let unifiURL = "https://unifi.ui.com"
-let gateChecklist = "\(NSHomeDirectory())/Documents/GitHub/AUTOGIO_PIOS/docs/checklists/wan_stability_gate.md"
+let repoRoot = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().path
+let gateChecklist = "\(repoRoot)/docs/checklists/wan_stability_gate.md"
 
 let delayMinutes: Int = {
     if CommandLine.arguments.count > 1, let n = Int(CommandLine.arguments[1]), n >= 0 {

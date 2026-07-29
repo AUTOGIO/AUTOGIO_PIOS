@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -u
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT_DIR="${BASE_DIR}/data/reports"
 mkdir -p "${REPORT_DIR}"
 

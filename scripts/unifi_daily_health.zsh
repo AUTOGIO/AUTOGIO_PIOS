@@ -4,7 +4,7 @@ set -u
 # Daily health check: network validation + WAN API + structured network score.
 # Non-interactive runs (LaunchAgent) skip WAN disconnect prompt.
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT_DIR="${BASE_DIR}/scripts"
 REPORT_DIR="${BASE_DIR}/data/reports"
 mkdir -p "${REPORT_DIR}"
@@ -43,57 +43,19 @@ fi
 
 section "Network Score (structured)"
 # Derive a simple 0–100 score from latest validate + WAN snippets in this report.
-SCORE_REPORT="${report_path}" SCORE_JSON="${score_json_path}" WAN_OK="${wan_ok}" python3 - <<'PY'
-import json, os, re, pathlib
+SCORE_REPORT="${report_path}" SCORE_JSON="${score_json_path}" WAN_OK="${wan_ok}" \
+PYTHONPATH="${BASE_DIR}/scripts${PYTHONPATH:+:$PYTHONPATH}" python3 - <<'PY'
+import json, os, pathlib
+from lib.network_score import score_from_report
 
 report = pathlib.Path(os.environ["SCORE_REPORT"]).read_text(errors="replace")
 wan_ok = os.environ.get("WAN_OK") == "1"
+payload = score_from_report(report, wan_ok)
+score = payload["network_score"]
+uptime = payload["uptime_24h_pct"]
+checks = payload["checks"]
+deductions = payload["deductions"]
 
-checks = {
-    "pass_baseline": "PASS_UNIFI_BASELINE_READY" in report,
-    "warn_not_behind": "WARN_CLIENT_NOT_BEHIND_UNIFI" in report,
-    "wan_api": wan_ok or "PASS_WAN_STATUS_READ" in report,
-    "no_hard_fail": "FAIL_NETWORK_UNSTABLE" not in report,
-}
-
-# Parse uptime if present
-uptime = None
-m = re.search(r"Uptime \(24h\):\s+([0-9.]+)%", report)
-if m:
-    try:
-        uptime = float(m.group(1))
-    except ValueError:
-        uptime = None
-
-score = 100
-deductions = []
-if "FAIL_NETWORK_UNSTABLE" in report:
-    score -= 40
-    deductions.append("network_unstable:-40")
-if "WARN_CLIENT_NOT_BEHIND_UNIFI" in report:
-    score -= 15
-    deductions.append("not_behind_unifi:-15")
-if not checks["wan_api"]:
-    score -= 10
-    deductions.append("wan_api_unavailable:-10")
-if uptime is not None and uptime < 99.9:
-    # Soft penalty during gate / Starlink variance
-    pen = min(20, int((99.9 - uptime) * 10))
-    score -= pen
-    deductions.append(f"uptime_{uptime}:-{pen}")
-
-score = max(0, min(100, score))
-
-payload = {
-    "network_score": score,
-    "uptime_24h_pct": uptime,
-    "checks": checks,
-    "deductions": deductions,
-    "notes": [
-        "Score is advisory for PIOS ops; UniFi UI remains source of truth for Topology events.",
-        "Weak Wi-Fi clients / DFS / AP util appear in intelligence reports when collector is running.",
-    ],
-}
 pathlib.Path(os.environ["SCORE_JSON"]).write_text(json.dumps(payload, indent=2) + "\n")
 print(f"Network Score:     {score}%")
 print(f"Uptime (24h):      {uptime if uptime is not None else 'n/a'}%")

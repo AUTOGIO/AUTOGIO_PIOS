@@ -4,7 +4,7 @@ set -euo pipefail
 # One Network Intelligence collection cycle (session-safe).
 # Intended interval: 5 minutes via LaunchAgent — do not cron at 1 minute.
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT_DIR="${BASE_DIR}/scripts"
 CONFIG_DIR="${BASE_DIR}/config"
 DATA_DIR="${BASE_DIR}/data/intelligence"
@@ -30,9 +30,16 @@ clients_json="$(unifi_api_get "${COOKIE_JAR}" "/proxy/network/api/s/${UNIFI_SITE
 # Devices (APs / gateway)
 devices_json="$(unifi_api_get "${COOKIE_JAR}" "/proxy/network/api/s/${UNIFI_SITE}/stat/device")"
 
-export WAN_JSON="${wan_json}"
-export CLIENTS_JSON="${clients_json}"
-export DEVICES_JSON="${devices_json}"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/pios-collect.XXXXXX")"
+trap 'rm -rf "${TMP_DIR}"' EXIT
+print -r -- "${wan_json}" >"${TMP_DIR}/wan.json"
+print -r -- "${clients_json}" >"${TMP_DIR}/clients.json"
+print -r -- "${devices_json}" >"${TMP_DIR}/devices.json"
+chmod 600 "${TMP_DIR}"/*.json 2>/dev/null || true
+
+export WAN_JSON_PATH="${TMP_DIR}/wan.json"
+export CLIENTS_JSON_PATH="${TMP_DIR}/clients.json"
+export DEVICES_JSON_PATH="${TMP_DIR}/devices.json"
 export DB_PATH HA_STATE_PATH
 
 python3 - <<'PY'
@@ -42,16 +49,24 @@ db = sqlite3.connect(os.environ["DB_PATH"])
 db.execute("PRAGMA foreign_keys=ON")
 ts = int(time.time())
 
-def load(env_key):
-    raw = os.environ.get(env_key, "")
+def load(path_key):
+    path = os.environ.get(path_key, "")
     try:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
+            raw = f.read()
         return json.loads(raw) if raw else None
-    except json.JSONDecodeError:
-        return {"_parse_error": True, "raw_prefix": raw[:300]}
+    except FileNotFoundError:
+        return {"_parse_error": True, "raw_prefix": ""}
+    except json.JSONDecodeError as e:
+        try:
+            prefix = open(path, "r", errors="replace").read()[:300]
+        except Exception:
+            prefix = ""
+        return {"_parse_error": True, "raw_prefix": prefix, "error": str(e)}
 
-wan = load("WAN_JSON")
-clients = load("CLIENTS_JSON")
-devices = load("DEVICES_JSON")
+wan = load("WAN_JSON_PATH")
+clients = load("CLIENTS_JSON_PATH")
+devices = load("DEVICES_JSON_PATH")
 
 wan_uptime = wan_peak_down = wan_peak_up = None
 wan_down_cap = wan_up_cap = None

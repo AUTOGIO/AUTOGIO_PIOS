@@ -31,15 +31,16 @@ Session-safe telemetry collector for PIOS-HOME-01. Extends existing local-admin 
 
 ```bash
 # One-shot collect (session-safe)
-~/Documents/GitHub/AUTOGIO_PIOS/scripts/collect.zsh
+./scripts/collect.zsh
 
 # Morning markdown report
-~/Documents/GitHub/AUTOGIO_PIOS/scripts/report_morning.zsh
+./scripts/report_morning.zsh
 
-# Optional: install LaunchAgent after Phase 0 (copy example, load)
-# cp ~/Documents/GitHub/AUTOGIO_PIOS/config/com.pios.unifi-intel-collect.plist.example \
-#    ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
-# launchctl load ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
+# Optional: install LaunchAgent after Phase 0 PASS
+# sed "s|__REPO_ROOT__|$HOME/Documents/GitHub/AUTOGIO_PIOS|g" \
+#   config/com.pios.unifi-intel-collect.plist.example \
+#   > ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
+# launchctl bootstrap "gui/$(id -u)" ~/Library/LaunchAgents/com.pios.unifi-intel-collect.plist
 ```
 
 ## Metrics collected (v1)

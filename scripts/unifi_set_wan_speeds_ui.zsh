@@ -2,17 +2,36 @@
 set -euo pipefail
 
 # Apply WAN ISP speed limits via UniFi UI after manual login (supports MFA).
+# Optional escape hatch when local-admin API login fails.
+# Requires: Playwright CLI wrapper (default: $CODEX_HOME/skills/playwright/... or set PLAYWRIGHT_CLI).
 # Defaults: 260 Mbps down / 74 Mbps up
+#
+# Prefer scripts/unifi_set_wan_speeds.zsh (local admin API) when possible.
 
 DOWN_MBPS="${1:-260}"
 UP_MBPS="${2:-74}"
 HOST="${UNIFI_HOST:-192.168.0.1}"
-USERNAME="${UNIFI_USERNAME:-automacao.giovannini@gmail.com}"
+if [[ -z "${UNIFI_USERNAME:-}" ]]; then
+  # Load local env if present (do not default to SSO email).
+  _env="$(cd "$(dirname "$0")/.." && pwd)/config/.unifi.local.env"
+  if [[ -f "${_env}" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${_env}"
+    set +a
+  fi
+fi
+if [[ -z "${UNIFI_USERNAME:-}" ]]; then
+  print -r -- "ERROR: Set UNIFI_USERNAME (local admin preferred) before running UI apply."
+  print -r -- "Example: UNIFI_USERNAME=pios-local-admin $0 ${DOWN_MBPS} ${UP_MBPS}"
+  exit 1
+fi
+USERNAME="${UNIFI_USERNAME}"
 SESSION="${PLAYWRIGHT_CLI_SESSION:-unifi-wan-apply}"
 WORKDIR="${TMPDIR:-/tmp}/unifi-pw"
-PWCLI="${CODEX_HOME:-$HOME/.codex}/skills/playwright/scripts/playwright_cli.sh"
+PWCLI="${PLAYWRIGHT_CLI:-${CODEX_HOME:-$HOME/.codex}/skills/playwright/scripts/playwright_cli.sh}"
 
-BASE_DIR="${HOME}/Documents/GitHub/AUTOGIO_PIOS"
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT_DIR="${BASE_DIR}/data/reports"
 mkdir -p "${REPORT_DIR}" "${WORKDIR}"
 timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -29,6 +48,7 @@ section() {
 
 if [[ ! -x "${PWCLI}" ]]; then
   print -r -- "ERROR: Playwright CLI wrapper not found at ${PWCLI}"
+  print -r -- "Install/configure PLAYWRIGHT_CLI, or use scripts/unifi_set_wan_speeds.zsh instead."
   exit 1
 fi
 
